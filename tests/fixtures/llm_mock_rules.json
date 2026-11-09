@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "profile": "generic-agent",
+  "rules": [
+    {
+      "id": "fixture_prd",
+      "priority": 500,
+      "match": {
+        "contains_all": [],
+        "contains_any": [
+          "write a prd"
+        ],
+        "stream": null
+      },
+      "response": {
+        "format": "json",
+        "content": {
+          "source": "project-rule",
+          "passed": true
+        }
+      }
+    }
+  ],
+  "fallback": {
+    "format": "text",
+    "content": "fixture fallback"
+  }
+}

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Audit Harness 代码审计与验收工作台">
+  <title>Audit Harness · 代码审计工作台</title>
+  <link rel="stylesheet" href="/assets/app.css?v=20261108">
+  <script src="/assets/app.js?v=20261108" defer></script>
+</head>
+<body>
+  <section id="access-gate" class="access-gate" aria-labelledby="access-title">
+    <form id="access-form" class="access-card">
+      <div class="brand-mark" aria-hidden="true">A<span>✓</span></div>
+      <h1 id="access-title">请输入访问码</h1>
+      <label class="sr-only" for="access-code">访问码</label>
+      <input id="access-code" type="password" name="code" autocomplete="off" placeholder="访问码" required maxlength="128" autofocus>
+      <button id="access-submit" class="primary" type="submit">进入工作台 <span aria-hidden="true">→</span></button>
+      <p id="access-message" class="form-message" role="status" aria-live="polite">正在检查访问状态…</p>
+    </form>
+  </section>
+
+  <div id="workspace" hidden>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Audit Harness 首页"><span class="brand-mark small" aria-hidden="true">A<span>✓</span></span><span>Audit Harness<small>代码审计工作台</small></span></a>
+      <div class="header-actions"><span class="private-label"><span class="status-dot"></span>私有工作台</span><button id="lock-button" class="button-quiet" type="button">锁定</button></div>
+    </header>
+    <main class="main-shell">
+      <section class="intro"><div><p class="eyebrow">CODE · TEST · EVIDENCE</p><h1>让每一次变更，都有据可验。</h1><p>提交代码仓库与接口文档，跟踪检查过程，查看审计报告和验收证据。</p></div><div class="intro-tag">AUDIT<br><strong>WORKSPACE</strong></div></section>
+      <div id="capability-banner" class="capability-banner" role="status"><span class="status-dot"></span><span id="capability-text">正在检查运行环境…</span><button id="check-environment" class="text-button" type="button">重新检查</button></div>
+      <p id="global-message" class="global-message" role="status" aria-live="polite" hidden></p>
+
+      <div class="workspace-grid">
+        <section class="panel create-panel" aria-labelledby="create-title">
+          <div class="panel-heading"><div><p class="eyebrow">NEW AUDIT</p><h2 id="create-title">新建审计</h2></div><span class="step-number">01</span></div>
+          <form id="audit-form">
+            <label for="repo">代码仓库 <span class="required">*</span></label>
+            <input id="repo" name="repo" type="url" placeholder="https://github.com/组织/项目.git" required maxlength="2048" autocomplete="url">
+            <p class="field-help">仅支持 github.com、gitlab.com、gitee.com 上可公开读取的 HTTPS 仓库；地址中不要包含密钥、查询参数或片段。</p>
+            <div class="form-row"><div><label for="requester">发起人</label><input id="requester" name="requester" value="web-user" required maxlength="255" autocomplete="off"></div><div><label for="audit-mode">审计范围</label><select id="audit-mode" name="audit_mode"><option value="full">完整项目审计</option><option value="change">代码变更审计</option></select></div></div>
+            <div id="change-fields" hidden><label for="base-commit">基准提交 <span class="required">*</span></label><input id="base-commit" placeholder="7–64 位十六进制提交 SHA，不支持分支名" minlength="7" maxlength="64" pattern="[0-9a-fA-F]{7,64}" autocomplete="off"><label for="patch">变更补丁 <span class="required">*</span></label><textarea id="patch" class="code-input" rows="7" maxlength="200000" placeholder="粘贴 unified diff 格式补丁"></textarea></div>
+            <div class="form-row"><div><label for="startup-command">服务启动命令 <span class="required">*</span></label><input id="startup-command" required placeholder="填写项目实际的完整启动命令" maxlength="500" autocomplete="off"></div><div><label for="service-port">服务端口 <span class="required">*</span></label><input id="service-port" required type="number" min="1" max="65535" placeholder="服务实际监听的端口"></div></div>
+            <p class="field-help">请按项目的实际入口填写，服务需在沙箱内监听 0.0.0.0。远程仓库在提交时尚未克隆，即使仓库内有配置文件，也必须在这里填写启动命令和端口。</p>
+            <label for="api-document">API 接口文档 <span class="required">*</span></label>
+            <textarea id="api-document" rows="8" required maxlength="200000" placeholder="粘贴 Markdown 接口文档，描述路径、请求参数、返回结构和预期行为。"></textarea>
+            <div class="form-row"><div><label for="runtime">Python 版本</label><select id="runtime"><option value="3.11">Python 3.11</option><option value="3.10">Python 3.10</option><option value="3.12">Python 3.12</option></select></div><div><label for="llm-policy">被审项目的模型请求</label><select id="llm-policy"><option value="mock">使用模拟响应</option><option value="disabled">禁用模型请求</option></select></div></div>
+            <p class="field-help">模拟响应仅用于被审项目的验收测试；审计分析模型由服务器配置。</p>
+            <details class="advanced-options"><summary>高级配置 <span>可选</span></summary><div class="advanced-content">
+              <label for="project-config">仓库配置文件路径 <span class="muted">可选</span></label><input id="project-config" value=".audit-harness/project.json" maxlength="255" autocomplete="off"><p class="field-help">保留默认值或留空会自动检测，仓库中没有默认配置文件也可继续；填写其他路径时，该文件必须存在。远程仓库仍需显式填写上方启动命令及端口。</p>
+              <label for="dependency">依赖清单路径</label><input id="dependency" placeholder="requirements.txt" maxlength="255" autocomplete="off" aria-describedby="dependency-note">
+              <p id="dependency-note" class="field-help" hidden>线上审计使用沙箱中预装的 Python 依赖。</p>
+              <label for="setup-commands">准备命令</label><textarea id="setup-commands" class="code-input" rows="3" placeholder="每行一条，最多 10 条"></textarea>
+              <label for="checks-json">自定义检查（JSON）</label><textarea id="checks-json" class="code-input" rows="4" placeholder='[{"name":"单元测试","command":"python -m pytest -q"}]'></textarea>
+              <label for="advanced-json">其他请求配置（JSON）</label><textarea id="advanced-json" class="code-input" rows="4" placeholder='{"env_files":[],"llm_adapters":[]}'></textarea><p class="field-help">可填写 services、env_files、llm_adapters 和模拟规则等可选字段；主要表单字段不会被覆盖。</p>
+            </div></details>
+            <p id="create-message" class="form-message" role="status" aria-live="polite"></p>
+            <button id="create-submit" class="primary full-width" type="submit" disabled>提交审计 <span aria-hidden="true">↗</span></button>
+            <p class="submit-help">检查在独立沙箱中执行，任务提交后可在右侧查看进度。</p>
+          </form>
+        </section>
+
+        <div class="results-column">
+          <section class="panel history-panel" aria-labelledby="history-title">
+            <div class="panel-heading"><div><p class="eyebrow">AUDIT ACTIVITY</p><h2 id="history-title">审计记录 <span id="audit-total" class="count">0</span></h2></div><button id="refresh-button" class="button-outline" type="button">刷新</button></div>
+            <div class="list-toolbar"><label class="sr-only" for="status-filter">筛选状态</label><select id="status-filter"><option value="">全部状态</option><option value="queued">排队中</option><option value="running">执行中</option><option value="passed">已通过</option><option value="failed">未通过</option><option value="error">执行异常</option></select><span id="refresh-status" class="muted">每 4 秒自动更新</span></div>
+            <div id="audit-list" class="audit-list"><div class="empty-state"><span class="empty-icon" aria-hidden="true">▤</span><h3>正在读取审计记录</h3></div></div>
+            <div class="pagination"><button id="previous-page" class="text-button" type="button" disabled>← 上一页</button><span id="page-label">第 1 页</span><button id="next-page" class="text-button" type="button" disabled>下一页 →</button></div>
+          </section>
+          <section id="detail-panel" class="panel detail-panel" aria-labelledby="detail-title">
+            <div class="panel-heading"><div><p class="eyebrow">REPORT & EVIDENCE</p><h2 id="detail-title">审计详情</h2></div><span id="detail-status"></span></div>
+            <div id="detail-empty" class="empty-state"><span class="empty-icon" aria-hidden="true">⌁</span><h3>等待选择一个任务</h3><p>从审计记录中选择任务，查看执行步骤、报告和制品。</p></div>
+            <div id="detail-content" hidden><p id="detail-id" class="detail-id"></p><div id="detail-summary" class="summary-grid"></div><h3 class="subheading">执行步骤</h3><div id="steps-list"></div><div class="detail-tabs" role="tablist" aria-label="详情视图"><button id="report-tab" type="button" role="tab" aria-selected="true" aria-controls="report-view">审计报告</button><button id="artifacts-tab" type="button" role="tab" aria-selected="false" aria-controls="artifacts-view">文件制品</button></div><div id="report-view" role="tabpanel" aria-labelledby="report-tab"><div id="report-highlight"></div><pre id="report-json" class="json-output" tabindex="0"></pre><button id="download-report" class="button-outline" type="button" disabled>下载 JSON 报告</button></div><div id="artifacts-view" role="tabpanel" aria-labelledby="artifacts-tab" hidden><div id="artifacts-list"></div><pre id="artifact-content" class="json-output" tabindex="0" hidden></pre></div></div>
+          </section>
+        </div>
+      </div>
+      <footer><span>Audit Harness</span><span>代码检查 · API 验收 · 证据归档</span><span id="model-label"></span></footer>
+    </main>
+  </div>
+</body>
+</html>
