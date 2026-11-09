@@ -81,9 +81,10 @@ class SiteAccessMiddleware:
         try:
             payload = json.loads(body)
             code = payload.get("code") if isinstance(payload, dict) else None
-        except (ValueError, UnicodeDecodeError):
-            code = None
-        if not isinstance(code, str) or not hmac.compare_digest(code.encode(), self.code.encode()):
+            submitted = code.encode("utf-8") if isinstance(code, str) else None
+        except ValueError:
+            submitted = None
+        if submitted is None or not hmac.compare_digest(submitted, self.code.encode("utf-8")):
             return JSONResponse({"msg": "访问码错误"}, status_code=401)
         self.attempts.pop(client, None)
         expires = int(time.time()) + self.lifetime

@@ -43,6 +43,17 @@ def test_tampered_cookie_and_bounded_guesses():
         assert client.post("/api/site-access", json={"code": "888"}).status_code == 429
 
 
+def test_unpaired_unicode_surrogate_is_rejected_as_an_invalid_code():
+    with client_for_gate() as client:
+        response = client.post(
+            "/api/site-access",
+            content=br'{"code":"\ud800"}',
+            headers={"Content-Type": "application/json"},
+        )
+        assert response.status_code == 401
+        assert "set-cookie" not in response.headers
+
+
 def test_oversized_code_body_is_rejected():
     with client_for_gate() as client:
         assert client.post("/api/site-access", content="x" * 1025).status_code == 413
