@@ -18,6 +18,8 @@ def sha256_json(value: Any) -> str:
 
 
 def truncate_tail(value: str, max_chars: int) -> str:
+    if max_chars <= 0:
+        return ""
     if len(value) <= max_chars:
         return value
     return value[-max_chars:]
