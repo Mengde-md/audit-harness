@@ -14,7 +14,11 @@ Python 3.11+ / FastAPI 后端及中文网页，支持完整项目审计、变更
 
 浏览器打开 `http://127.0.0.1:8080`。设置访问码后，服务端校验访问码并签发带过期时间的 HttpOnly Cookie。
 
-使用 `python -m pytest -q` 运行测试。GitHub Actions 使用同一组依赖和命令运行离线测试，覆盖模拟模型、沙箱调用和临时数据库等流程。
+## 离线测试
+
+安装开发依赖后，使用 `python -m pytest -q` 运行完整测试套件。测试使用模拟模型和沙箱调用，以及临时数据库。开发机无需启动 Docker、提供模型密钥或准备数据库服务即可运行这套测试。GitHub Actions 使用同一份依赖锁定文件和 pytest 命令。
+
+只验证模型接口或日志截断时，可运行 `python -m pytest -q tests/test_openai_compatible_provider.py tests/test_process.py`。
 
 ## 审计执行条件
 
