@@ -172,6 +172,8 @@ def reset_request_id(token) -> None:
 
 
 def sanitize_for_log(value: Any, max_chars: int = 8_000) -> str:
+    if max_chars <= 0:
+        return ""
     sanitized = _sanitize_value(value)
     if isinstance(sanitized, str):
         text = sanitized
@@ -187,7 +189,7 @@ def sanitize_for_log(value: Any, max_chars: int = 8_000) -> str:
 
 
 def parse_body_for_log(body: bytes, max_chars: int) -> str:
-    if not body:
+    if not body or max_chars <= 0:
         return ""
     text = body.decode("utf-8", errors="replace")
     try:

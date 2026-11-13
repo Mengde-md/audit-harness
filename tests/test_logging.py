@@ -1,8 +1,11 @@
 import logging
 
+import pytest
+
 from app.core.config import Settings
 from app.core.logging import (
     configure_logging,
+    parse_body_for_log,
     sanitize_for_log,
     shutdown_logging,
 )
@@ -21,6 +24,12 @@ def test_sanitize_redacts_secrets_and_truncates():
     assert "abc123" not in result
     assert "***REDACTED***" in result
     assert "truncated" in result
+
+
+@pytest.mark.parametrize("limit", [0, -1])
+def test_nonpositive_limit_suppresses_log_payloads(limit):
+    assert sanitize_for_log("request body", max_chars=limit) == ""
+    assert parse_body_for_log(b'{"message":"request body"}', max_chars=limit) == ""
 
 
 def test_logging_writes_main_and_separate_error_files(tmp_path):
