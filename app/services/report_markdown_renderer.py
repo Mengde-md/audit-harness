@@ -452,4 +452,5 @@ class ReportMarkdownRenderer:
     @staticmethod
     def _escape(value: Any) -> str:
         """Escape Markdown table-breaking characters."""
-        return str(value or "").replace("|", "\\|").replace("\n", " ")
+        text = str(value or "").replace("\r\n", "\n").replace("\r", "\n")
+        return text.replace("|", "\\|").replace("\n", " ")

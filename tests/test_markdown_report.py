@@ -1,6 +1,15 @@
 from app.services.report_service import ReportService
 
 
+def test_markdown_table_cells_flatten_windows_and_legacy_line_endings():
+    report = {"quality": {"failure_attribution": {"reason": "first\r\nsecond\rthird | detail"}}}
+
+    markdown = ReportService().render_markdown(report)
+
+    assert r"| 归因说明 | first second third \| detail |" in markdown
+    assert "\r" not in markdown
+
+
 def test_markdown_report_contains_summary_and_failure_details():
     report = {
         "audit_id": "audit-1",
