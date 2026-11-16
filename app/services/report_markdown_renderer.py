@@ -343,11 +343,13 @@ class ReportMarkdownRenderer:
             ]
         )
         for step in report.get("steps", []):
+            exit_code = step.get("exit_code")
+            duration_ms = step.get("duration_ms")
             lines.append(
                 f"| {self._escape(step.get('name'))} "
                 f"| `{step.get('status')}` "
-                f"| {step.get('exit_code')} "
-                f"| {step.get('duration_ms')} "
+                f"| {exit_code if exit_code is not None else '—'} "
+                f"| {duration_ms if duration_ms is not None else '—'} "
                 f"| `{self._escape(step.get('image'))}` |"
             )
         lines.append("")

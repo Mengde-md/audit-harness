@@ -10,6 +10,20 @@ def test_markdown_table_cells_flatten_windows_and_legacy_line_endings():
     assert "\r" not in markdown
 
 
+def test_step_table_distinguishes_missing_measurements_from_zero():
+    report = {
+        "steps": [
+            {"name": "queued", "status": "pending"},
+            {"name": "completed", "status": "passed", "exit_code": 0, "duration_ms": 0},
+        ]
+    }
+
+    markdown = ReportService().render_markdown(report)
+
+    assert "| queued | `pending` | — | — |" in markdown
+    assert "| completed | `passed` | 0 | 0 |" in markdown
+
+
 def test_markdown_report_contains_summary_and_failure_details():
     report = {
         "audit_id": "audit-1",
