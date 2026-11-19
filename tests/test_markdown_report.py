@@ -24,6 +24,21 @@ def test_step_table_distinguishes_missing_measurements_from_zero():
     assert "| completed | `passed` | 0 | 0 |" in markdown
 
 
+def test_response_excerpts_with_code_fences_stay_in_one_code_block():
+    for inner_fence in ("```", "````"):
+        excerpt = f"response:\n{inner_fence}json\n{{}}\n{inner_fence}\nend"
+        report = {
+            "api_validation": {
+                "results": [{"name": "failed request", "passed": False, "response_excerpt": excerpt}]
+            }
+        }
+
+        markdown = ReportService().render_markdown(report)
+
+        outer_fence = inner_fence + "`"
+        assert f"\n{outer_fence}text\n{excerpt}\n{outer_fence}\n" in markdown
+
+
 def test_markdown_report_contains_summary_and_failure_details():
     report = {
         "audit_id": "audit-1",

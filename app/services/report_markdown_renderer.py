@@ -1,5 +1,6 @@
 """Markdown renderer for human-readable audit reports."""
 
+import re
 from typing import Any
 
 
@@ -425,7 +426,10 @@ class ReportMarkdownRenderer:
                 lines.append(f"- {self._escape(failure)}")
             excerpt = result.get("response_excerpt")
             if excerpt:
-                lines.extend(["", "```text", str(excerpt)[:4000], "```"])
+                text = str(excerpt)[:4000]
+                longest_run = max((len(run) for run in re.findall(r"`+", text)), default=0)
+                fence = "`" * max(3, longest_run + 1)
+                lines.extend(["", f"{fence}text", text, fence])
             lines.append("")
 
     def _append_error(self, lines: list[str], report: dict[str, Any]) -> None:
