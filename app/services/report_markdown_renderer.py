@@ -402,10 +402,11 @@ class ReportMarkdownRenderer:
         )
         for result in results:
             status = "PASS" if result.get("passed") else "FAIL"
+            status_code = result.get("status_code")
             lines.append(
                 f"| {self._escape(result.get('name'))} "
                 f"| `{status}` "
-                f"| {result.get('status_code')} "
+                f"| {status_code if status_code is not None else '—'} "
                 f"| {result.get('duration_ms')} |"
             )
         lines.append("")

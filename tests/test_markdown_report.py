@@ -24,6 +24,22 @@ def test_step_table_distinguishes_missing_measurements_from_zero():
     assert "| completed | `passed` | 0 | 0 |" in markdown
 
 
+def test_api_table_distinguishes_connection_failure_from_http_failure():
+    report = {
+        "api_validation": {
+            "results": [
+                {"name": "offline", "passed": False, "status_code": None, "duration_ms": 0},
+                {"name": "missing", "passed": False, "status_code": 404, "duration_ms": 8},
+            ]
+        }
+    }
+
+    markdown = ReportService().render_markdown(report)
+
+    assert "| offline | `FAIL` | — | 0 |" in markdown
+    assert "| missing | `FAIL` | 404 | 8 |" in markdown
+
+
 def test_response_excerpts_with_code_fences_stay_in_one_code_block():
     for inner_fence in ("```", "````"):
         excerpt = f"response:\n{inner_fence}json\n{{}}\n{inner_fence}\nend"
