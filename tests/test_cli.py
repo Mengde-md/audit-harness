@@ -1,5 +1,7 @@
 import json
 
+import pytest
+
 from app.cli.client import ApiError
 from app.cli.main import main
 
@@ -110,7 +112,14 @@ def test_cli_status_formats_task_status(capsys):
     assert "gate: pass" in output
 
 
-def test_cli_watch_stops_when_task_completes(capsys):
+@pytest.mark.parametrize(
+    "artifacts,expected_path",
+    [
+        ({"report_json": "tmp/report.json"}, "tmp/report.json"),
+        ({"report_markdown": "tmp/report.md", "report_json": "tmp/report.json"}, "tmp/report.md"),
+    ],
+)
+def test_cli_watch_stops_when_task_completes(capsys, artifacts, expected_path):
     client = FakeClient()
     client.status_responses = [
         {
@@ -131,7 +140,7 @@ def test_cli_watch_stops_when_task_completes(capsys):
                     "gate": {"status": "pass"},
                     "confidence": {"level": "high", "score": 1.0},
                 },
-                "artifacts": {"report_markdown": "tmp/report.md"},
+                "artifacts": artifacts,
             },
             "steps": [{"name": "api_acceptance", "status": "passed"}],
         },
@@ -146,6 +155,7 @@ def test_cli_watch_stops_when_task_completes(capsys):
     output = capsys.readouterr().out
     assert "running" in output
     assert "Audit completed" in output
+    assert f"report: {expected_path}" in output.splitlines()
 
 
 def test_cli_returns_nonzero_for_api_error(capsys):

@@ -59,14 +59,13 @@ def format_watch_completed(data: dict[str, Any]) -> str:
     quality = summary.get("quality", {}) or {}
     gate = quality.get("gate", {}) or {}
     confidence = quality.get("confidence", {}) or {}
-    artifacts = summary.get("artifacts", {}) or {}
     return "\n".join(
         [
             "Audit completed",
             f"status: {data.get('status', '')}",
             f"gate: {gate.get('status', '')}",
             f"confidence: {confidence.get('level', '')} ({confidence.get('score', 0)})",
-            f"report: {artifacts.get('report_markdown', '')}",
+            f"report: {format_report(summary, path_only=True)}",
         ]
     )
 
