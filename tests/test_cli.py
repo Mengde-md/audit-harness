@@ -1,3 +1,4 @@
+import io
 import json
 
 import pytest
@@ -167,6 +168,20 @@ def test_cli_returns_nonzero_for_api_error(capsys):
 
     assert code == 1
     assert "code: 20001" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("payload", [None, [], {"code": 0, "data": ["sample"]}])
+def test_cli_rejects_unexpected_json_response_types(monkeypatch, capsys, payload):
+    def respond(request, timeout):
+        return io.BytesIO(json.dumps(payload).encode("utf-8"))
+
+    monkeypatch.setattr("app.cli.client.urlopen", respond)
+    code = main(["status", "--audit-id", "audit-1", "--json"])
+
+    assert code == 3
+    output = capsys.readouterr()
+    assert output.out == ""
+    assert "expected a JSON object" in output.err
 
 
 def test_cli_json_outputs_raw_response(capsys):

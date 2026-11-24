@@ -83,6 +83,13 @@ class HarnessHttpClient:
             envelope = json.loads(raw)
         except json.JSONDecodeError as exc:
             raise HttpRequestError(f"invalid JSON response: {raw[:500]}") from exc
+        if not isinstance(envelope, dict):
+            raise HttpRequestError("expected a JSON object in the API response")
         if envelope.get("code", 0) != 0:
             raise ApiError(envelope.get("code"), envelope.get("msg", "request failed"))
-        return envelope.get("data") or {}
+        data = envelope.get("data")
+        if data is None:
+            return {}
+        if not isinstance(data, dict):
+            raise HttpRequestError("expected a JSON object in the API response data")
+        return data
