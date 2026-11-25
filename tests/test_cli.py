@@ -184,6 +184,19 @@ def test_cli_rejects_unexpected_json_response_types(monkeypatch, capsys, payload
     assert "expected a JSON object" in output.err
 
 
+@pytest.mark.parametrize("body", [b"sample upstream text", b"\xffsample upstream text"])
+def test_cli_handles_invalid_json_without_echoing_response(monkeypatch, capsys, body):
+    monkeypatch.setattr("app.cli.client.urlopen", lambda request, timeout: io.BytesIO(body))
+
+    code = main(["status", "--audit-id", "audit-1", "--json"])
+
+    assert code == 3
+    output = capsys.readouterr()
+    assert output.out == ""
+    assert "invalid UTF-8 JSON response" in output.err
+    assert "sample upstream text" not in output.err
+
+
 def test_cli_json_outputs_raw_response(capsys):
     client = FakeClient()
 

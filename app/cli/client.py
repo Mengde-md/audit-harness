@@ -71,7 +71,7 @@ class HarnessHttpClient:
         )
         try:
             with urlopen(request, timeout=self.timeout) as response:
-                raw = response.read().decode("utf-8")
+                raw = response.read()
         except HTTPError as exc:
             raw = exc.read().decode("utf-8", errors="replace")
             raise HttpRequestError(f"HTTP {exc.code}: {raw}") from exc
@@ -80,9 +80,9 @@ class HarnessHttpClient:
         except OSError as exc:
             raise HttpRequestError(str(exc)) from exc
         try:
-            envelope = json.loads(raw)
-        except json.JSONDecodeError as exc:
-            raise HttpRequestError(f"invalid JSON response: {raw[:500]}") from exc
+            envelope = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            raise HttpRequestError("invalid UTF-8 JSON response") from None
         if not isinstance(envelope, dict):
             raise HttpRequestError("expected a JSON object in the API response")
         if envelope.get("code", 0) != 0:
