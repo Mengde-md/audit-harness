@@ -73,8 +73,8 @@ class HarnessHttpClient:
             with urlopen(request, timeout=self.timeout) as response:
                 raw = response.read()
         except HTTPError as exc:
-            raw = exc.read().decode("utf-8", errors="replace")
-            raise HttpRequestError(f"HTTP {exc.code}: {raw}") from exc
+            exc.close()
+            raise HttpRequestError(f"HTTP {exc.code}") from None
         except URLError as exc:
             raise HttpRequestError(str(exc.reason)) from exc
         except OSError as exc:

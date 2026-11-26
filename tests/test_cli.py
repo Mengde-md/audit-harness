@@ -1,5 +1,6 @@
 import io
 import json
+from urllib.error import HTTPError
 
 import pytest
 
@@ -195,6 +196,23 @@ def test_cli_handles_invalid_json_without_echoing_response(monkeypatch, capsys, 
     assert output.out == ""
     assert "invalid UTF-8 JSON response" in output.err
     assert "sample upstream text" not in output.err
+
+
+@pytest.mark.parametrize("status", [403, 502])
+def test_cli_reports_http_status_without_echoing_response(monkeypatch, capsys, status):
+    body = io.BytesIO(b"sample upstream content")
+
+    def respond(request, timeout):
+        raise HTTPError(request.full_url, status, "sample upstream reason", {}, body)
+
+    monkeypatch.setattr("app.cli.client.urlopen", respond)
+    code = main(["status", "--audit-id", "audit-1", "--json"])
+
+    assert code == 3
+    assert body.closed
+    output = capsys.readouterr()
+    assert output.out == ""
+    assert output.err.splitlines() == ["Error", f"msg: HTTP {status}"]
 
 
 def test_cli_json_outputs_raw_response(capsys):
